@@ -177,7 +177,6 @@ export function SpecialtiesTab({ unlockedSpecialties, onToggleSpecialty }: Speci
                 ? "mx-auto w-[88%] aspect-[1.2] rounded-[50%]" // [MODIFICADO]
                 : "w-full aspect-[1.35] rounded-[42%]" // [MODIFICADO]
               const ovalRadiusClass = isDomesticas ? "rounded-[50%]" : "rounded-[42%]" // [MODIFICADO]
-              const labelFill = softFillFromAreaColor(selectedArea.themeColor) // [MODIFICADO]
               const fallbackTile = tileImageDataUri({
                 text: specialty.name,
                 bgColor: selectedArea.themeColor,
@@ -197,13 +196,17 @@ export function SpecialtiesTab({ unlockedSpecialties, onToggleSpecialty }: Speci
                       src={getSpecialtyImageUrl(specialty)}
                       alt={specialty.name}
                       className={`pointer-events-none absolute inset-0 mt-0 min-h-0 shadow-none ring-0 ${ovalRadiusClass}`} // [MODIFICADO]
-                      imgClassName="h-full min-h-0 w-full object-cover"
+                      imgClassName={`h-full min-h-0 w-full object-cover transition-[filter] duration-300 ${
+                        unlocked ? "grayscale-0 saturate-100" : "grayscale saturate-0"
+                      }`}
                       fallback={
                         <div className={`pointer-events-none absolute inset-0 ${ovalRadiusClass}`}> {/* [MODIFICADO] */}
                           <img
                             src={fallbackTile}
                             alt=""
-                            className={`h-full w-full object-cover ${ovalRadiusClass}`} // [MODIFICADO]
+                            className={`h-full w-full object-cover ${ovalRadiusClass} transition-[filter] duration-300 ${
+                              unlocked ? "grayscale-0 saturate-100" : "grayscale saturate-0"
+                            }`} // [MODIFICADO]
                             draggable={false}
                           />
                         </div>
@@ -216,19 +219,16 @@ export function SpecialtiesTab({ unlockedSpecialties, onToggleSpecialty }: Speci
                     )}
                   </button>
                   <span
-                    className={`line-clamp-2 text-center leading-tight ${
-                      unlocked
-                        ? "text-[12px] font-extrabold text-foreground" // [MODIFICADO]
-                        : "text-[10px] text-muted-foreground"
-                    }`} // [MODIFICADO]
+                    className="line-clamp-2 text-center text-[12px] font-black leading-tight"
                     style={{
-                      border: `1px solid ${selectedArea.themeColor}`, // [MODIFICADO]
-                      backgroundColor: labelFill, // [MODIFICADO]
-                      borderRadius: "0.55rem", // [MODIFICADO]
-                      padding: "0.2rem 0.35rem", // [MODIFICADO]
-                      color: selectedArea.themeColor, // [MODIFICADO]
-                      WebkitTextStroke: `0.22px ${selectedArea.themeColor}`, // [MODIFICADO]
-                    }} // [MODIFICADO]
+                      // Sin caja/fondo: texto siempre visible con relleno y contorno.
+                      backgroundColor: "transparent",
+                      color: unlocked ? selectedArea.themeColor : "#94a3b8",
+                      WebkitTextStroke: unlocked ? "0.7px #0f172a" : "0.7px #334155",
+                      textShadow: unlocked
+                        ? "0 1px 0 rgba(255,255,255,0.85), 0 0 4px rgba(15,23,42,0.25)"
+                        : "0 1px 0 rgba(255,255,255,0.8), 0 0 3px rgba(51,65,85,0.2)",
+                    }}
                   >
                     {specialty.name}
                   </span>
