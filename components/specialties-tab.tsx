@@ -1,5 +1,6 @@
 "use client"
 
+import type { CSSProperties } from "react"
 import { useMemo, useState } from "react"
 import { Check } from "lucide-react"
 import { PillProgressBar } from "@/components/pill-progress-bar"
@@ -24,28 +25,39 @@ function getInitialText(text: string) {
   return t.slice(0, 2).toUpperCase()
 }
 
-function getTextColor(bgColor: string) {
-  const hex = bgColor.replace("#", "").trim()
-  if (hex.length !== 6) return "#ffffff"
-  const r = parseInt(hex.slice(0, 2), 16)
-  const g = parseInt(hex.slice(2, 4), 16)
-  const b = parseInt(hex.slice(4, 6), 16)
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
-  return luminance > 0.85 ? "#111827" : "#ffffff"
+/** Relleno y borde (trazo) del nombre bajo cada especialidad cuando está desbloqueada */
+const UNLOCKED_SPECIALTY_LABEL_BY_AREA: Record<string, { fill: string; stroke: string }> = {
+  "actividades-misioneras": { fill: "#7546cb", stroke: "#ffffff" },
+  naturaleza: { fill: "#ffffff", stroke: "#000000" },
+  "arte-habilidades-manuales": { fill: "#238d87", stroke: "#ffffff" },
+  recreacionales: { fill: "#28961b", stroke: "#ffffff" },
+  "salud-ciencia": { fill: "#4a1b96", stroke: "#ffffff" },
+  agricolas: { fill: "#bd6f36", stroke: "#ffffff" },
+  profesionales: { fill: "#4a1b96", stroke: "#ffffff" },
+  domesticas: { fill: "#ff6f07", stroke: "#ffffff" },
+  adra: { fill: "#4a1b96", stroke: "#ffffff" },
 }
 
-function softFillFromAreaColor(bgColor: string) { // [MODIFICADO]
-  const hex = bgColor.replace("#", "").trim() // [MODIFICADO]
-  if (hex.length !== 6) return "rgb(241 245 249)" // [MODIFICADO]
-  const r = parseInt(hex.slice(0, 2), 16) // [MODIFICADO]
-  const g = parseInt(hex.slice(2, 4), 16) // [MODIFICADO]
-  const b = parseInt(hex.slice(4, 6), 16) // [MODIFICADO]
-  const mix = 0.78 // [MODIFICADO]
-  const nr = Math.round(r + (255 - r) * mix) // [MODIFICADO]
-  const ng = Math.round(g + (255 - g) * mix) // [MODIFICADO]
-  const nb = Math.round(b + (255 - b) * mix) // [MODIFICADO]
-  return `rgb(${nr} ${ng} ${nb})` // [MODIFICADO]
-} // [MODIFICADO]
+function getSpecialtyNameLabelStyle(areaId: string, unlocked: boolean): CSSProperties {
+  if (!unlocked) {
+    return {
+      color: "#ffffff",
+      WebkitTextStroke: "1px #000000",
+      textShadow: "none",
+      paintOrder: "stroke fill",
+    }
+  }
+  const spec = UNLOCKED_SPECIALTY_LABEL_BY_AREA[areaId] ?? {
+    fill: "#7546cb",
+    stroke: "#ffffff",
+  }
+  return {
+    color: spec.fill,
+    WebkitTextStroke: `2.5px ${spec.stroke}`,
+    textShadow: "none",
+    paintOrder: "stroke fill",
+  }
+}
 
 function getHueFromText(text: string) { // [MODIFICADO]
   let hash = 0 // [MODIFICADO]
@@ -56,12 +68,25 @@ function getHueFromText(text: string) { // [MODIFICADO]
 } // [MODIFICADO]
 
 /** Imagen de celda con forma ovoide horizontal para cada especialidad */ // [MODIFICADO]
-function tileImageDataUri({ text, bgColor, uniqueKey }: { text: string; bgColor: string; uniqueKey: string }) { // [MODIFICADO]
+function tileImageDataUri({
+  text,
+  uniqueKey,
+  areaId,
+  unlocked,
+}: {
+  text: string
+  uniqueKey: string
+  areaId: string
+  unlocked: boolean
+}) {
   const safeText = getInitialText(text)
   const hue = getHueFromText(uniqueKey) // [MODIFICADO]
   const start = `hsl(${hue} 70% 56%)` // [MODIFICADO]
   const end = `hsl(${(hue + 32) % 360} 72% 46%)` // [MODIFICADO]
-  const textColor = getTextColor(bgColor) // [MODIFICADO]
+  const spec = UNLOCKED_SPECIALTY_LABEL_BY_AREA[areaId] ?? { fill: "#7546cb", stroke: "#ffffff" }
+  const fill = unlocked ? spec.fill : "#ffffff"
+  const stroke = unlocked ? spec.stroke : "#000000"
+  const strokeWidth = unlocked ? "2.35" : "1.1"
   const svg = `
   <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128">
     <defs>
@@ -73,7 +98,7 @@ function tileImageDataUri({ text, bgColor, uniqueKey }: { text: string; bgColor:
     <rect width="128" height="128" rx="56" ry="52" fill="url(#g)"/> <!-- [MODIFICADO] -->
     <circle cx="20" cy="22" r="14" fill="rgba(255,255,255,0.24)"/> <!-- [MODIFICADO] -->
     <circle cx="106" cy="102" r="18" fill="rgba(255,255,255,0.16)"/> <!-- [MODIFICADO] -->
-    <text x="64" y="74" text-anchor="middle" font-size="28" font-family="Arial, Helvetica, sans-serif" fill="${textColor}" font-weight="700">${safeText}</text>
+    <text x="64" y="78" text-anchor="middle" font-size="40" font-family="Arial, Helvetica, sans-serif" fill="${fill}" font-weight="800" stroke="${stroke}" stroke-width="${strokeWidth}" paint-order="stroke fill">${safeText}</text>
   </svg>`
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 }
@@ -179,9 +204,11 @@ export function SpecialtiesTab({ unlockedSpecialties, onToggleSpecialty }: Speci
               const ovalRadiusClass = isDomesticas ? "rounded-[50%]" : "rounded-[42%]" // [MODIFICADO]
               const fallbackTile = tileImageDataUri({
                 text: specialty.name,
-                bgColor: selectedArea.themeColor,
                 uniqueKey: specialty.id, // [MODIFICADO]
+                areaId: selectedArea.id,
+                unlocked,
               })
+              const specialtyNameStyle = getSpecialtyNameLabelStyle(selectedArea.id, unlocked)
               return (
                 <div key={specialty.id} className="flex flex-col gap-1">
                   <button
@@ -219,16 +246,8 @@ export function SpecialtiesTab({ unlockedSpecialties, onToggleSpecialty }: Speci
                     )}
                   </button>
                   <span
-                    className="line-clamp-2 text-center text-[12px] font-black leading-tight"
-                    style={{
-                      // Sin caja/fondo: texto siempre visible con relleno y contorno.
-                      backgroundColor: "transparent",
-                      color: unlocked ? selectedArea.themeColor : "#94a3b8",
-                      WebkitTextStroke: unlocked ? "0.7px #0f172a" : "0.7px #334155",
-                      textShadow: unlocked
-                        ? "0 1px 0 rgba(255,255,255,0.85), 0 0 4px rgba(15,23,42,0.25)"
-                        : "0 1px 0 rgba(255,255,255,0.8), 0 0 3px rgba(51,65,85,0.2)",
-                    }}
+                    className="line-clamp-2 text-center text-lg font-black leading-snug tracking-tight md:text-xl"
+                    style={specialtyNameStyle}
                   >
                     {specialty.name}
                   </span>

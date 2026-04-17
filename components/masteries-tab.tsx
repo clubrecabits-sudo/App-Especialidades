@@ -598,7 +598,88 @@ export function MasteriesTab({ unlockedSpecialties }: MasteriesTabProps) {
   }) // [MODIFICADO]
   const obtainedMasteries = masteryEntries.filter((entry) => entry.progress.done) // [MODIFICADO]
   const pendingMasteries = masteryEntries.filter((entry) => !entry.progress.done) // [MODIFICADO]
-  const orderedMasteries = [...obtainedMasteries, ...pendingMasteries] // [MODIFICADO]
+
+  type MasteryEntryRow = (typeof masteryEntries)[number]
+
+  function renderMasteryArticle(entry: MasteryEntryRow) {
+    const { mastery, progress, percent, previewImage } = entry
+    return (
+      <article
+        key={mastery.id}
+        className={cn(
+          "rounded-xl border-2 p-4", // [MODIFICADO]
+          progress.done // [MODIFICADO]
+            ? "border-4 ring-2 ring-emerald-400/70 shadow-[0_16px_30px_-8px_rgba(16,185,129,0.7)]" // [MODIFICADO]
+            : "bg-card" // [MODIFICADO]
+        )}
+        style={{
+          borderColor: progress.done ? "#10b981" : mastery.style.accent, // [MODIFICADO]
+          backgroundColor: progress.done ? "#ecfdf5" : mastery.style.fill, // [MODIFICADO]
+        }}
+      >
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="text-lg font-black text-foreground">{mastery.name}</h2>
+            <span
+              className="shrink-0 rounded-md px-2 py-1 text-xs font-semibold"
+              style={{
+                backgroundColor: progress.done ? "#86efac" : "#e2e8f0",
+                color: progress.done ? "#14532d" : "#0f172a",
+              }}
+            >
+              {progress.done ? "Desbloqueada" : `${percent}%`}
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <div
+              className="relative aspect-[1.3] w-28 overflow-hidden rounded-[42%] border-2 bg-white/40"
+              style={{ borderColor: mastery.style.accent }}
+            >
+              <img src={previewImage} alt={mastery.name} className="h-full w-full object-cover" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-700">Progreso</p>
+              <PillProgressBar
+                percent={percent}
+                current={progress.completed}
+                total={progress.total}
+                unitLabel="especialidades"
+                fillColor={mastery.style.accent}
+                showCountRow
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2">
+          {progress.unlockedIds.map((specialtyId) => {
+            const done = !!unlockedSpecialties[specialtyId]
+            return (
+              <div
+                key={`${mastery.id}-${specialtyId}`}
+                className="rounded-lg border px-2 py-2 text-xs"
+                style={
+                  done
+                    ? {
+                        borderColor: mastery.style.accent,
+                        backgroundColor: "#ffffff",
+                        color: mastery.style.accent,
+                      }
+                    : {
+                        borderColor: "#cbd5e1",
+                        backgroundColor: "#f8fafc",
+                        color: "#94a3b8",
+                      }
+                }
+              >
+                {done ? NAME_BY_ID[specialtyId] ?? specialtyId : ""}
+              </div>
+            )
+          })}
+        </div>
+      </article>
+    )
+  }
 
   return (
     <section className="flex flex-col gap-5">
@@ -613,88 +694,20 @@ export function MasteriesTab({ unlockedSpecialties }: MasteriesTabProps) {
         />
       </header>
 
-      <div className="flex flex-col gap-4">
-        {obtainedMasteries.length > 0 ? ( // [MODIFICADO]
-          <h3 className="text-sm font-black uppercase tracking-wide text-emerald-700">Maestrias Obtenidas</h3>
-        ) : null} //
-        {orderedMasteries.map(({ mastery, progress, percent, previewImage }) => { // [MODIFICADO]
-          return (
-            <article
-              key={mastery.id}
-              className={cn(
-                "rounded-xl border-2 p-4", // [MODIFICADO]
-                progress.done // [MODIFICADO]
-                  ? "border-4 ring-2 ring-emerald-400/70 shadow-[0_16px_30px_-8px_rgba(16,185,129,0.7)]" // [MODIFICADO]
-                  : "bg-card" // [MODIFICADO]
-              )}
-              style={{
-                borderColor: progress.done ? "#10b981" : mastery.style.accent, // [MODIFICADO]
-                backgroundColor: progress.done ? "#ecfdf5" : mastery.style.fill, // [MODIFICADO]
-              }}
-            >
-              <div className="mb-4 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-2">
-                  <h2 className="text-lg font-black text-foreground">{mastery.name}</h2>
-                  <span
-                    className="shrink-0 rounded-md px-2 py-1 text-xs font-semibold"
-                    style={{
-                      backgroundColor: progress.done ? "#86efac" : "#e2e8f0",
-                      color: progress.done ? "#14532d" : "#0f172a",
-                    }}
-                  >
-                    {progress.done ? "Desbloqueada" : `${percent}%`}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div
-                    className="relative aspect-[1.3] w-28 overflow-hidden rounded-[42%] border-2 bg-white/40"
-                    style={{ borderColor: mastery.style.accent }}
-                  >
-                    <img src={previewImage} alt={mastery.name} className="h-full w-full object-cover" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-xs font-bold uppercase tracking-wide text-slate-700">Progreso</p>
-                    <PillProgressBar
-                      percent={percent}
-                      current={progress.completed}
-                      total={progress.total}
-                      unitLabel="especialidades"
-                      fillColor={mastery.style.accent}
-                      showCountRow
-                    />
-                  </div>
-                </div>
-              </div>
+      <div className="flex flex-col gap-6">
+        {obtainedMasteries.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm font-black uppercase tracking-wide text-emerald-700">Maestrías obtenidas</h3>
+            <div className="flex flex-col gap-4">{obtainedMasteries.map(renderMasteryArticle)}</div>
+          </div>
+        ) : null}
 
-              <div className="grid grid-cols-2 gap-2">
-                {progress.unlockedIds.map((specialtyId) => {
-                  const done = !!unlockedSpecialties[specialtyId]
-                  return (
-                    <div
-                      key={`${mastery.id}-${specialtyId}`}
-                      className="rounded-lg border px-2 py-2 text-xs"
-                      style={
-                        done
-                          ? {
-                              borderColor: mastery.style.accent,
-                              backgroundColor: "#ffffff",
-                              color: mastery.style.accent,
-                            }
-                          : {
-                              borderColor: "#cbd5e1",
-                              backgroundColor: "#f8fafc",
-                              color: "#94a3b8",
-                            }
-                      }
-                    >
-                      {done ? NAME_BY_ID[specialtyId] ?? specialtyId : ""}
-                    </div>
-                  )
-                })}
-              </div>
-            </article>
-          )
-        })}
+        {pendingMasteries.length > 0 ? (
+          <div className="flex flex-col gap-3">
+            <h3 className="text-sm font-black uppercase tracking-wide text-slate-700">Maestrías por obtener</h3>
+            <div className="flex flex-col gap-4">{pendingMasteries.map(renderMasteryArticle)}</div>
+          </div>
+        ) : null}
       </div>
     </section>
   )

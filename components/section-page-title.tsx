@@ -12,9 +12,10 @@ export function SectionPageTitle({ children, className }: SectionPageTitleProps)
     <h1
       className={cn(
         "border-b-4 border-[rgb(43_76_49)] pb-2 text-3xl font-black tracking-tight text-foreground",
-        "drop-shadow-[0_2px_0_rgba(0,0,0,0.06)] md:text-4xl",
+        "md:text-4xl",
         className
       )}
+      style={{ WebkitTextStroke: "0.5px rgba(255,255,255,0.95)" }}
     >
       {children}
     </h1>

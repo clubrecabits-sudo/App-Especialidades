@@ -221,7 +221,7 @@ export const SPECIALTY_AREAS: SpecialtyArea[] = [
     specialties: makeSpecialties("actividades-misioneras", [
       {
         name: "Adoración cristiana",
-        image: "/specialties/items/adoracion-cristiana.webp",
+        image: "/specialties/items/adoracion-cristiana.png",
       },
       "Apocalipsis",
       "Arqueología bíblica",

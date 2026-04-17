@@ -45,7 +45,10 @@ export function BottomTabs({ activeTab, onTabChange }: BottomTabsProps) {
                 <span className="absolute top-0 left-1/2 h-0.5 w-8 -translate-x-1/2 rounded-full bg-primary" />
               )}
               <Icon className={cn("size-5", isActive && "scale-110")} />
-              <span className="text-[11px] font-semibold leading-tight">
+              <span
+                className="text-[11px] font-semibold leading-tight"
+                style={{ WebkitTextStroke: "0.4px rgba(255,255,255,0.95)" }}
+              >
                 {tab.label}
               </span>
             </button>
